@@ -66,7 +66,7 @@ function squareSlot(i) {
   if (i < 7) return { col: i + 1, row: 1 }; // top L→R
   if (i < 12) return { col: 7, row: i - 5 }; // right T→B (rows 2–6)
   if (i < 19) return { col: 19 - i, row: 7 }; // bottom R→L
-  return { col: 1, row: 26 - i }; // left B→T (rows 6–2)
+  return { col: 1, row: 25 - i }; // left B→T (rows 6–2)
 }
 
 function buildWheel() {
