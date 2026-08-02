@@ -24,10 +24,35 @@ const totalBetEl = document.getElementById("total-bet");
 
 /** @type {HTMLButtonElement[]} */
 let cellEls = [];
+/** @type {HTMLElement | null} */
+let hubEl = null;
+/** @type {HTMLElement | null} */
+let hubSubEl = null;
+/** @type {HTMLElement[]} */
+let hubLedEls = [];
 
 function setStatus(msg, tone = "") {
   statusEl.textContent = msg;
   statusEl.dataset.tone = tone;
+}
+
+/** @param {'idle' | 'run' | 'win' | 'lose'} mode */
+function setHubMode(mode, detail = "") {
+  if (!hubEl || !hubSubEl) return;
+  hubEl.dataset.mode = mode;
+  if (mode === "run") hubSubEl.textContent = "跑燈中";
+  else if (mode === "win") hubSubEl.textContent = detail || "中獎！";
+  else if (mode === "lose") hubSubEl.textContent = detail || "再來";
+  else hubSubEl.textContent = "純娛樂";
+}
+
+function pulseHubLeds(stepIndex) {
+  if (!hubLedEls.length) return;
+  const n = hubLedEls.length;
+  const on = stepIndex % n;
+  hubLedEls.forEach((el, i) => {
+    el.classList.toggle("on", i === on || i === (on + 1) % n);
+  });
 }
 
 function renderCredits() {
@@ -76,10 +101,38 @@ function rectSlot(i) {
 function buildWheel() {
   wheelEl.innerHTML = "";
   cellEls = [];
+  hubLedEls = [];
 
   const hub = document.createElement("div");
   hub.className = "hub";
-  hub.innerHTML = "<strong>小瑪莉</strong><span>純娛樂</span>";
+  hub.dataset.mode = "idle";
+  hub.innerHTML = `
+    <div class="hub-leds" aria-hidden="true"></div>
+    <div class="hub-glow" aria-hidden="true"></div>
+    <div class="hub-scan" aria-hidden="true"></div>
+    <div class="hub-copy">
+      <strong>小瑪莉</strong>
+      <span class="hub-sub">純娛樂</span>
+    </div>
+  `;
+  const leds = hub.querySelector(".hub-leds");
+  // 16 LEDs around rectangular hub: 5 top + 3 right + 5 bottom + 3 left
+  const ledSlots = [];
+  for (let i = 0; i < 5; i++) ledSlots.push({ x: i / 4, y: 0 });
+  for (let i = 1; i < 4; i++) ledSlots.push({ x: 1, y: i / 4 });
+  for (let i = 4; i >= 0; i--) ledSlots.push({ x: i / 4, y: 1 });
+  for (let i = 3; i >= 1; i--) ledSlots.push({ x: 0, y: i / 4 });
+  ledSlots.forEach((slot, i) => {
+    const dot = document.createElement("span");
+    dot.className = "hub-led";
+    dot.style.setProperty("--i", String(i));
+    dot.style.left = `calc(${slot.x * 100}% - 0.19rem)`;
+    dot.style.top = `calc(${slot.y * 100}% - 0.19rem)`;
+    leds.appendChild(dot);
+    hubLedEls.push(dot);
+  });
+  hubEl = hub;
+  hubSubEl = hub.querySelector(".hub-sub");
   wheelEl.appendChild(hub);
 
   WHEEL.forEach((kindId, i) => {
@@ -172,9 +225,16 @@ async function startRound() {
   btnClear.disabled = true;
   btnCredit.disabled = true;
   setStatus("跑燈中…", "run");
+  setHubMode("run");
+  if (hubEl) hubEl.style.setProperty("--urgency", "0");
 
   const path = buildChasePath(result.index, WHEEL.length, 4 + Math.floor(Math.random() * 2));
-  await runChase(path, (_i, idx) => highlight(idx));
+  await runChase(path, (i, idx) => {
+    highlight(idx);
+    pulseHubLeds(i);
+    const urgency = Math.min(1, i / (path.length * 0.55));
+    hubEl?.style.setProperty("--urgency", String(urgency));
+  });
 
   audio.stopHit();
   highlight(result.index);
@@ -186,17 +246,23 @@ async function startRound() {
   const kind = kindById(result.kindId);
   if (result.payout > 0) {
     audio.win(kind.odds);
+    setHubMode("win", `+${result.payout}`);
     setStatus(
       `停在「${kind.label}」！押 ${result.betOn} × ${kind.odds} = +${result.payout}`,
       "win",
     );
   } else {
     audio.lose();
+    setHubMode("lose", kind.label);
     setStatus(`停在「${kind.label}」— 沒押中，再來。`, "lose");
   }
 
   btnCredit.disabled = false;
   renderBets();
+
+  window.setTimeout(() => {
+    if (!game.running) setHubMode("idle");
+  }, 2200);
 }
 
 btnStart.addEventListener("click", () => {
