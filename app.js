@@ -7,6 +7,7 @@ import {
   kindById,
   stepDelayMs,
 } from "./game.js";
+import { iconSvg } from "./icons.js";
 
 const audio = new MaliAudio();
 const game = new MaliGame();
@@ -92,8 +93,9 @@ function buildWheel() {
     btn.style.gridColumn = String(col);
     btn.style.gridRow = String(row);
     btn.dataset.index = String(i);
-    btn.innerHTML = `<span class="glyph">${kind.glyph}</span><span class="odds">×${kind.odds}</span>`;
+    btn.innerHTML = `${iconSvg(kind.id)}<span class="odds">×${kind.odds}</span>`;
     btn.title = `${kind.label} ×${kind.odds}`;
+    btn.setAttribute("aria-label", `${kind.label} ×${kind.odds}`);
     btn.disabled = true;
     wheelEl.appendChild(btn);
     cellEls.push(btn);
@@ -109,11 +111,12 @@ function buildBetGrid() {
     card.dataset.bet = kind.id;
     card.style.setProperty("--hue", String(kind.hue));
     card.innerHTML = `
-      <span class="bet-glyph">${kind.glyph}</span>
+      <span class="bet-icon">${iconSvg(kind.id)}</span>
       <span class="bet-label">${kind.label}</span>
       <span class="bet-odds">×${kind.odds}</span>
       <span class="bet-count">0</span>
     `;
+    card.setAttribute("aria-label", `押注 ${kind.label}`);
     card.addEventListener("click", async () => {
       await audio.unlock();
       if (!game.bet(kind.id)) {
