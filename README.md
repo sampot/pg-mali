@@ -46,6 +46,7 @@ python3 -m http.server 8080
 | `styles.css` | 機台感版面 |
 | `app.js` | UI 與跑燈動畫 |
 | `game.js` | 押注／賠率／路徑 |
+| `icons.js` | 八種圖案輕量 SVG（原創剪影） |
 | `audio.js` | Web Audio 合成音效 |
 | `functions.js` | Playgrounds 可選 stub |
 
