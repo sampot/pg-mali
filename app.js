@@ -61,12 +61,15 @@ function clearFlash() {
   cellEls.forEach((el) => el.classList.remove("win", "lit"));
 }
 
-/** Map chase index → 7×7 grid border slot (square ring, 24 cells). */
-function squareSlot(i) {
-  if (i < 7) return { col: i + 1, row: 1 }; // top L→R
-  if (i < 12) return { col: 7, row: i - 5 }; // right T→B (rows 2–6)
-  if (i < 19) return { col: 19 - i, row: 7 }; // bottom R→L
-  return { col: 1, row: 25 - i }; // left B→T (rows 6–2)
+/**
+ * Map chase index → 9×5 grid border (landscape rectangle, 24 cells).
+ * Top 9 + right 3 + bottom 9 + left 3 — like a cabinet face, not a circle.
+ */
+function rectSlot(i) {
+  if (i < 9) return { col: i + 1, row: 1 }; // top L→R
+  if (i < 12) return { col: 9, row: i - 7 }; // right T→B (rows 2–4)
+  if (i < 21) return { col: 21 - i, row: 5 }; // bottom R→L
+  return { col: 1, row: 25 - i }; // left B→T (rows 4–2)
 }
 
 function buildWheel() {
@@ -80,7 +83,7 @@ function buildWheel() {
 
   WHEEL.forEach((kindId, i) => {
     const kind = kindById(kindId);
-    const { col, row } = squareSlot(i);
+    const { col, row } = rectSlot(i);
 
     const btn = document.createElement("button");
     btn.type = "button";
