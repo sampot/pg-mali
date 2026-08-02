@@ -61,24 +61,33 @@ function clearFlash() {
   cellEls.forEach((el) => el.classList.remove("win", "lit"));
 }
 
+/** Map chase index → 7×7 grid border slot (square ring, 24 cells). */
+function squareSlot(i) {
+  if (i < 7) return { col: i + 1, row: 1 }; // top L→R
+  if (i < 12) return { col: 7, row: i - 5 }; // right T→B (rows 2–6)
+  if (i < 19) return { col: 19 - i, row: 7 }; // bottom R→L
+  return { col: 1, row: 26 - i }; // left B→T (rows 6–2)
+}
+
 function buildWheel() {
   wheelEl.innerHTML = "";
   cellEls = [];
-  const n = WHEEL.length;
-  const radius = 42; // % from center
+
+  const hub = document.createElement("div");
+  hub.className = "hub";
+  hub.innerHTML = "<strong>小瑪莉</strong><span>純娛樂</span>";
+  wheelEl.appendChild(hub);
 
   WHEEL.forEach((kindId, i) => {
     const kind = kindById(kindId);
-    const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
-    const x = 50 + radius * Math.cos(angle);
-    const y = 50 + radius * Math.sin(angle);
+    const { col, row } = squareSlot(i);
 
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "cell";
     btn.style.setProperty("--hue", String(kind.hue));
-    btn.style.left = `${x}%`;
-    btn.style.top = `${y}%`;
+    btn.style.gridColumn = String(col);
+    btn.style.gridRow = String(row);
     btn.dataset.index = String(i);
     btn.innerHTML = `<span class="glyph">${kind.glyph}</span><span class="odds">×${kind.odds}</span>`;
     btn.title = `${kind.label} ×${kind.odds}`;
@@ -86,11 +95,6 @@ function buildWheel() {
     wheelEl.appendChild(btn);
     cellEls.push(btn);
   });
-
-  const hub = document.createElement("div");
-  hub.className = "hub";
-  hub.innerHTML = "<strong>小瑪莉</strong><span>純娛樂</span>";
-  wheelEl.appendChild(hub);
 }
 
 function buildBetGrid() {
