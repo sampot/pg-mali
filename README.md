@@ -6,14 +6,14 @@
 - **圖示：** 八種原創輕量 SVG 剪影  
 - **中心區：** 待機流水燈、跑燈加速、中獎彩光  
 
-也可當作 [Playgrounds（遊樂場）](https://samkuo.me/playgrounds/) 的 **SAM**（`index.html` 入口）。
+也可當作 [Playgrounds（遊樂場）](https://play.samkuo.me/) 的 **SAM**（`index.html` 入口）。
 
 ## 一鍵開 SAM 小
 
-**[一鍵開 SAM 小](https://samkuo.me/playgrounds/?open=sampot%2Fpg-mali&name=%E5%B0%8F%E7%91%AA%E8%8E%89)**
+**[一鍵開 SAM 小](https://play.samkuo.me/?open=sampot%2Fpg-mali&name=%E5%B0%8F%E7%91%AA%E8%8E%89)**
 
 ```
-https://samkuo.me/playgrounds/?open=sampot/pg-mali&name=小瑪莉
+https://play.samkuo.me/?open=sampot/pg-mali&name=小瑪莉
 ```
 
 同源會重用本機已匯入的沙盒；要強制新建可加 `&fresh=1`。
