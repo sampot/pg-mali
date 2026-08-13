@@ -85,6 +85,16 @@ export class MaliAudio {
     this.tone(freq, dur, "square", 0.18 + u * 0.15);
   }
 
+  /** Start the chase (ensure audio context is ready). Kept for symmetry. */
+  chaseStart() {
+    this.ensure();
+  }
+
+  /** End the chase (per-tick tones self-stop; nothing to release). */
+  chaseEnd() {
+    // no-op
+  }
+
   /** Landing thud before payout reveal */
   stopHit() {
     this.tone(160, 0.12, "triangle", 0.4);
