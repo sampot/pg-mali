@@ -1,48 +1,30 @@
 /**
  * Pure-entertainment light-chase wheel (genre homage).
- * Odds and layout are original — not copied from any commercial cabinet ROM.
+ * Classic Little Mary symbol set and odds.
  */
 
 /** @typedef {{ id: string, label: string, glyph: string, odds: number, hue: number }} SymbolKind */
 
 /** @type {SymbolKind[]} */
 export const KINDS = [
-  { id: "lion", label: "獅", glyph: "獅", odds: 12, hue: 28 },
-  { id: "panda", label: "熊", glyph: "熊", odds: 8, hue: 200 },
-  { id: "monkey", label: "猴", glyph: "猴", odds: 6, hue: 45 },
-  { id: "rabbit", label: "兔", glyph: "兔", odds: 4, hue: 320 },
-  { id: "eagle", label: "鷹", glyph: "鷹", odds: 12, hue: 210 },
-  { id: "peacock", label: "雀", glyph: "雀", odds: 8, hue: 160 },
-  { id: "dove", label: "鴿", glyph: "鴿", odds: 6, hue: 250 },
-  { id: "swallow", label: "燕", glyph: "燕", odds: 4, hue: 10 },
+  { id: "bar", label: "BAR", glyph: "BAR", odds: 100, hue: 45 },
+  { id: "double7", label: "77", glyph: "77", odds: 40, hue: 0 },
+  { id: "star", label: "星星", glyph: "星", odds: 30, hue: 55 },
+  { id: "watermelon", label: "西瓜", glyph: "瓜", odds: 20, hue: 140 },
+  { id: "bell", label: "鈴鐺", glyph: "鈴", odds: 20, hue: 35 },
+  { id: "coconut", label: "椰子", glyph: "椰", odds: 15, hue: 155 },
+  { id: "orange", label: "橘子", glyph: "橘", odds: 10, hue: 25 },
+  { id: "apple", label: "蘋果", glyph: "蘋", odds: 5, hue: 350 },
 ];
 
-/** 24 cells around the wheel (original repeating pattern). */
+/** 24 cells around the wheel — classic Little Mary repeating pattern. */
 export const WHEEL = [
-  "lion",
-  "swallow",
-  "monkey",
-  "dove",
-  "panda",
-  "rabbit",
-  "eagle",
-  "peacock",
-  "lion",
-  "swallow",
-  "monkey",
-  "dove",
-  "panda",
-  "rabbit",
-  "eagle",
-  "peacock",
-  "lion",
-  "swallow",
-  "monkey",
-  "dove",
-  "panda",
-  "rabbit",
-  "eagle",
-  "peacock",
+  "orange", "bell", "bar", "apple",
+  "coconut", "watermelon", "star", "double7",
+  "orange", "bell", "bar", "apple",
+  "coconut", "watermelon", "star", "double7",
+  "orange", "bell", "bar", "apple",
+  "coconut", "watermelon", "star", "double7",
 ];
 
 export function kindById(id) {
@@ -110,7 +92,6 @@ export class MaliGame {
     this.lastIndex = index;
     this.lastWin = payout;
 
-    // Clear bets for next round; credits updated after animation.
     for (const id of Object.keys(this.bets)) this.bets[id] = 0;
 
     return { index, kindId, payout, betOn };
@@ -136,26 +117,24 @@ export function buildChasePath(targetIndex, cellCount, laps = 4) {
   for (let i = 0; i <= totalSteps; i++) {
     path.push((start + i) % cellCount);
   }
-  // Ensure last is target
   path[path.length - 1] = targetIndex;
   return path;
 }
 
 /**
- * Duration (ms) for step i along a path of length n — fast middle, slow end.
+ * Duration (ms) for step i along a path of length n.
  * @param {number} i
  * @param {number} n
  */
 export function stepDelayMs(i, n) {
   const t = i / Math.max(1, n - 1);
-  // Ease: start moderate, accelerate, strong decelerate near end
   let factor;
   if (t < 0.55) {
-    factor = 1 - t * 1.2; // speed up
+    factor = 1 - t * 1.2;
     factor = Math.max(0.15, factor);
   } else {
     const u = (t - 0.55) / 0.45;
-    factor = 0.15 + u * u * 2.4; // slow down hard
+    factor = 0.15 + u * u * 2.4;
   }
   return 28 + factor * 95;
 }

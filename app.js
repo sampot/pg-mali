@@ -28,6 +28,12 @@ let cellEls = [];
 let hubEl = null;
 /** @type {HTMLElement | null} */
 let hubSubEl = null;
+/** @type {HTMLElement | null} */
+let hubCreditsEl = null;
+/** @type {HTMLElement | null} */
+let hubBetEl = null;
+/** @type {HTMLElement | null} */
+let hubWinEl = null;
 /** @type {HTMLElement[]} */
 let hubLedEls = [];
 
@@ -40,10 +46,19 @@ function setStatus(msg, tone = "") {
 function setHubMode(mode, detail = "") {
   if (!hubEl || !hubSubEl) return;
   hubEl.dataset.mode = mode;
-  if (mode === "run") hubSubEl.textContent = "跑燈中";
-  else if (mode === "win") hubSubEl.textContent = detail || "中獎！";
-  else if (mode === "lose") hubSubEl.textContent = detail || "再來";
-  else hubSubEl.textContent = "純娛樂";
+  if (mode === "run") {
+    hubSubEl.textContent = "跑燈中";
+    if (hubWinEl) hubWinEl.textContent = "—";
+  } else if (mode === "win") {
+    hubSubEl.textContent = "中獎！";
+    if (hubWinEl) hubWinEl.textContent = detail || "+0";
+  } else if (mode === "lose") {
+    hubSubEl.textContent = "再來";
+    if (hubWinEl) hubWinEl.textContent = "0";
+  } else {
+    hubSubEl.textContent = "純娛樂";
+    if (hubWinEl) hubWinEl.textContent = "—";
+  }
 }
 
 function pulseHubLeds(stepIndex) {
@@ -58,6 +73,8 @@ function pulseHubLeds(stepIndex) {
 function renderCredits() {
   creditsEl.textContent = String(game.credits);
   totalBetEl.textContent = String(game.totalBet());
+  if (hubCreditsEl) hubCreditsEl.textContent = String(game.credits);
+  if (hubBetEl) hubBetEl.textContent = String(game.totalBet());
 }
 
 function renderBets() {
@@ -88,14 +105,14 @@ function clearFlash() {
 }
 
 /**
- * Map chase index → 9×5 grid border (landscape rectangle, 24 cells).
- * Top 9 + right 3 + bottom 9 + left 3 — like a cabinet face, not a circle.
+ * Map chase index → 7×7 grid border (24 cells).
+ * Top 7 + right 5 + bottom 7 + left 5 — full border, no gaps.
  */
 function rectSlot(i) {
-  if (i < 9) return { col: i + 1, row: 1 }; // top L→R
-  if (i < 12) return { col: 9, row: i - 7 }; // right T→B (rows 2–4)
-  if (i < 21) return { col: 21 - i, row: 5 }; // bottom R→L
-  return { col: 1, row: 25 - i }; // left B→T (rows 4–2)
+  if (i < 7) return { col: i + 1, row: 1 }; // top L→R
+  if (i < 12) return { col: 7, row: i - 5 }; // right T→B (rows 2–6)
+  if (i < 19) return { col: 19 - i, row: 7 }; // bottom R→L
+  return { col: 1, row: 25 - i }; // left B→T (rows 6–2)
 }
 
 function buildWheel() {
@@ -110,18 +127,21 @@ function buildWheel() {
     <div class="hub-leds" aria-hidden="true"></div>
     <div class="hub-glow" aria-hidden="true"></div>
     <div class="hub-scan" aria-hidden="true"></div>
+    <div class="hub-led-display hub-credits"><span class="led-label">CREDIT</span><span class="led-value">100</span></div>
+    <div class="hub-led-display hub-bet"><span class="led-label">BET</span><span class="led-value">0</span></div>
     <div class="hub-copy">
       <strong>小瑪莉</strong>
       <span class="hub-sub">純娛樂</span>
     </div>
+    <div class="hub-led-display hub-win-display"><span class="led-label">WIN</span><span class="led-value">—</span></div>
   `;
   const leds = hub.querySelector(".hub-leds");
-  // 16 LEDs around rectangular hub: 5 top + 3 right + 5 bottom + 3 left
+  // 16 LEDs around square hub: 3 top + 5 right + 3 bottom + 5 left
   const ledSlots = [];
-  for (let i = 0; i < 5; i++) ledSlots.push({ x: i / 4, y: 0 });
-  for (let i = 1; i < 4; i++) ledSlots.push({ x: 1, y: i / 4 });
-  for (let i = 4; i >= 0; i--) ledSlots.push({ x: i / 4, y: 1 });
-  for (let i = 3; i >= 1; i--) ledSlots.push({ x: 0, y: i / 4 });
+  for (let i = 0; i < 3; i++) ledSlots.push({ x: i / 2, y: 0 });
+  for (let i = 0; i < 5; i++) ledSlots.push({ x: 1, y: (i + 0.5) / 5 });
+  for (let i = 2; i >= 0; i--) ledSlots.push({ x: i / 2, y: 1 });
+  for (let i = 4; i >= 0; i--) ledSlots.push({ x: 0, y: (i + 0.5) / 5 });
   ledSlots.forEach((slot, i) => {
     const dot = document.createElement("span");
     dot.className = "hub-led";
@@ -133,6 +153,9 @@ function buildWheel() {
   });
   hubEl = hub;
   hubSubEl = hub.querySelector(".hub-sub");
+  hubCreditsEl = hub.querySelector(".hub-credits .led-value");
+  hubBetEl = hub.querySelector(".hub-bet .led-value");
+  hubWinEl = hub.querySelector(".hub-win-display .led-value");
   wheelEl.appendChild(hub);
 
   WHEEL.forEach((kindId, i) => {
@@ -166,8 +189,10 @@ function buildBetGrid() {
     card.innerHTML = `
       <span class="bet-icon">${iconSvg(kind.id)}</span>
       <span class="bet-label">${kind.label}</span>
-      <span class="bet-odds">×${kind.odds}</span>
-      <span class="bet-count">0</span>
+      <span class="bet-info">
+        <span class="bet-odds">×${kind.odds}</span>
+        <span class="bet-count">0</span>
+      </span>
     `;
     card.setAttribute("aria-label", `押注 ${kind.label}`);
     card.addEventListener("click", async () => {
