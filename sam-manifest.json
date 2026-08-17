@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "rev": "1786466",
+  "files": [
+    "app.js",
+    "audio.js",
+    "functions.js",
+    "game.js",
+    "icons.js",
+    "index.html",
+    "playwright.config.mjs",
+    "styles.css"
+  ]
+}
